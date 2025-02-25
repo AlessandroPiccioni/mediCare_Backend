@@ -13,6 +13,9 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+import jakarta.persistence.OneToOne;
 
 @Entity
 public class User {
@@ -25,6 +28,12 @@ public class User {
 	@GeneratedValue(strategy= GenerationType.IDENTITY)
 	private Long id;
 	
+	//Relazione onetoone con la tabella Doctor
+	//Un utente puo essere solo un medico
+	//un medico puo essere soltanto un utente
+	@OneToOne(mappedBy = "user")
+	private Doctor doctor;
+	
 	//Il nome dell'utente
 	@NotBlank(message = "Nome utente è obbligatorio")
 	private String nome;
@@ -32,6 +41,12 @@ public class User {
 	//Il cognome dell'utente
 	@NotBlank(message = "Nome utente è obbligatorio")
 	private String cognome;
+	
+	@NotBlank(message = "Nome utente è obbligatorio")
+	@Size(min = 16, max = 16, message = "Il codice fiscale deve essere lungo 16 caratteri")
+    @Pattern(regexp = "^[A-Z0-9]{16}$", message = "Il codice fiscale deve contenere solo lettere maiuscole e numeri")
+	@Column(unique = true)
+	private String codiceFiscale;
 	
 	//Email dell'utente
 	@NotBlank(message = "Nome utente è obbligatorio")
@@ -124,6 +139,24 @@ public class User {
 	public void setToken(String token) {
 		this.token = token;
 	}
+
+	public Doctor getDoctor() {
+		return doctor;
+	}
+
+	public void setDoctor(Doctor doctor) {
+		this.doctor = doctor;
+	}
+
+	public String getCodiceFiscale() {
+		return codiceFiscale;
+	}
+
+	public void setCodiceFiscale(String codiceFiscale) {
+		this.codiceFiscale = codiceFiscale;
+	}
+	
+	
 	
 	
 

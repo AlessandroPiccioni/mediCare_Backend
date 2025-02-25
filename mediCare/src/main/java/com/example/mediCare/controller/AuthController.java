@@ -44,6 +44,7 @@ public class AuthController {
      */
     @PostMapping("/login")
     public Map<String, String> login(@RequestBody Map<String, String> body, HttpServletResponse response) {
+    	System.out.println("Sono entrato qui dentro");
     	 //Estrae username e password dalla richiesta JSON
     	String email = body.get("email");
         String password = body.get("password");
