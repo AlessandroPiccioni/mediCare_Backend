@@ -1,5 +1,7 @@
 package com.example.mediCare.model;
 
+import java.util.List;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -27,6 +29,12 @@ public class DoctorSpecialization {
 	
 	//Costruttore di default
 	public DoctorSpecialization() {
+	}
+	
+	//Costruttore
+	public DoctorSpecialization(Doctor doctor, Specialization specialization ) {
+		this.doctor = doctor;
+		this.specialization = specialization;
 	}
 	
 	//getters e setters

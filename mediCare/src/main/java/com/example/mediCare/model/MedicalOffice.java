@@ -29,6 +29,7 @@ public class MedicalOffice {
 	private List <Doctor> doctor;
 	
 	@NotBlank(message = "Nome utente è obbligatorio")
+	@Column(unique = true)
 	private String nome;
 	
 	@NotBlank(message = "Nome utente è obbligatorio")

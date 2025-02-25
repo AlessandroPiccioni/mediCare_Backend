@@ -55,6 +55,27 @@ public class UserController {
     }
     
     /**
+     * Endpoint per la verifica dell'utente e per continuare la registrazione del medico
+     * 
+     * @param utente		Utente da registrare
+     * @param request		Oggetto HttpServletRequest che contiene informazioni della richietsa
+     * @param response		Oggetto HttpServletResponse che contiene informazioni della risposta 
+     * @return ritorna la risposta dell'endpint composta da httpstatus e dal nuovo oggetto User
+     */
+    @PostMapping("/verified")
+    public Object verifiedUtenteUser(@Valid @RequestBody User user,HttpServletRequest request, HttpServletResponse response) {
+    	//Controlla il ruolo dell'utente
+    	//if(user.getRuolo().equals(User.Ruolo.Paziente) || user.getRuolo().equals(User.Ruolo.Medico)) {
+    		//Richiesta fallita
+    		//return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    	//}
+    	System.out.println("Sono entrato qui dentro");
+    	user.setRuolo(User.Ruolo.Medico);
+    	//Gli rimanda l'user controlla cosi che possa continuare nella registrazione del medico
+        return new ResponseEntity<>(user, HttpStatus.CONTINUE);
+    }
+    
+    /**
      * Metodo di utilità per estrarre il token di autenticazione dall'header "Authorization".
      * Il token viene inviato nel formato "Bearer <token>".
      *

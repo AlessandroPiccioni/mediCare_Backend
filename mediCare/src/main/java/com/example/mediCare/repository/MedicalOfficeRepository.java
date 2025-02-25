@@ -17,6 +17,9 @@ public interface MedicalOfficeRepository extends JpaRepository<MedicalOffice, Lo
 	//Cerca lo studio medico tramite il nome e il codice fiscale
 	Optional<MedicalOffice> findByCodiceFiscaleAndNome(String codiceFiscale, String nome);
 	
+	//Cerca lo studio medico tramite il nome (univoco)
+	Optional<MedicalOffice> findByNome (String nome);
+	
 	
 	
 }

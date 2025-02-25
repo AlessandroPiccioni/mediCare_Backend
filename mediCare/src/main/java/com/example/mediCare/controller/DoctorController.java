@@ -62,8 +62,7 @@ public class DoctorController {
      * @param request		Oggetto HttpServletRequest che contiene informazioni della richietsa
      * @param response		Oggetto HttpServletResponse che contiene informazioni della risposta 
      * @return ritorna la risposta dell'endpint composta da httpstatus e dal nuovo oggetto User
-     */
-    /*
+     */ 
     @PostMapping 
     public Object createUtenteUser(@RequestBody User user, @PathVariable String codiceFiscale, @PathVariable String nome, @PathVariable List<String> nomeSpecializzazione,HttpServletRequest request, HttpServletResponse response) {
     	//Cerca se l'utente eiste
@@ -76,12 +75,12 @@ public class DoctorController {
     		return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     	}
     	//Lista di specializzazione controllata
-    	List<Long> sup = new ArrayList <Long>();
+    	List<Specialization> sup = new ArrayList <Specialization>();
     	for(int i=0; i<nomeSpecializzazione.size(); i++) {
     		for(String b: Specialization.fields) {
     			//Confronta per vedere se la specializzazione esiste
     			if(nomeSpecializzazione.get(i).equals(b)) {
-    				sup.add(specializationRepository.findByField(nomeSpecializzazione.get(i)).get().getId());
+    				sup.add(specializationRepository.findByField(nomeSpecializzazione.get(i)).get());
     			}
     		}
     	}
@@ -97,9 +96,19 @@ public class DoctorController {
     	//salva l'utente
     	doctorRepository.save(doctor);
     	//Salva le relazione tra il dottore e le specializzazione
-    	doctorSpecializationRepository.saveAllWithDoctorId(doctor.getId(), sup);
+    	moreDoctorSpecialization(doctor,sup);
         return new ResponseEntity<>(doctor, HttpStatus.CREATED);
-    }*/
+    }
+    
+	//Crea una relazione con lo stesso id medico con tutte gli id specializzazione di una lista
+	//Metodo per creare piu di una volta la relazione tra un solo medico con piu specializzazioni
+    public void moreDoctorSpecialization(Doctor doctor, List<Specialization> specialization) {
+        List<DoctorSpecialization> doctorSpecializations = new ArrayList<>();
+        for (Specialization spec : specialization) {
+            doctorSpecializations.add(new DoctorSpecialization(doctor, spec));
+        }
+        doctorSpecializationRepository.saveAll(doctorSpecializations);
+    }
     
     /**
      * Metodo di utilità per estrarre il token di autenticazione dall'header "Authorization".
