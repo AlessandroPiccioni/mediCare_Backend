@@ -65,7 +65,7 @@ public class UserController {
      * @return ritorna la risposta dell'endpint composta da httpstatus e dal nuovo oggetto User
      */
     @PostMapping("/verified")
-    public Object verifiedUtenteUser(@Valid @RequestBody User user,HttpServletRequest request, HttpServletResponse response) {
+    public User verifiedUtenteUser(@Valid @RequestBody User user,HttpServletRequest request, HttpServletResponse response) {
     	//Controlla il ruolo dell'utente
     	//if(user.getRuolo().equals(User.Ruolo.Paziente) || user.getRuolo().equals(User.Ruolo.Medico)) {
     		//Richiesta fallita
@@ -76,8 +76,10 @@ public class UserController {
     		System.out.println("è vuoro");
     	}
     	user.setRuolo(User.Ruolo.Medico);
+    	System.out.println("prima del return");
     	//Gli rimanda l'user controlla cosi che possa continuare nella registrazione del medico
-        return new ResponseEntity<>(user, HttpStatus.CONTINUE);
+        //return new ResponseEntity<>(user, HttpStatus.CONTINUE);
+    	return user;
     }
     
     /**
