@@ -64,12 +64,12 @@ public class DoctorController {
      * @return ritorna la risposta dell'endpint composta da httpstatus e dal nuovo oggetto User
      */ 
     @PostMapping 
-    public Object createUtenteUser(@RequestBody User user, @PathVariable String codiceFiscale, @PathVariable String nome, @PathVariable List<String> nomeSpecializzazione,HttpServletRequest request, HttpServletResponse response) {
+    public Object createUtenteUser(@RequestBody User user, @PathVariable String codiceFiscale, @PathVariable List<String> nomeSpecializzazione,HttpServletRequest request, HttpServletResponse response) {
     	//Cerca se l'utente eiste
     	if(userRepository.findByEmailAndPasswordAndCodiceFiscale(user.getEmail(), user.getPassword(), user.getCodiceFiscale()).isPresent()) {
     		return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     	}
-    	Optional<MedicalOffice> opMedicalOffice =medicalOfficeRepository.findByCodiceFiscaleAndNome(codiceFiscale, nome);
+    	Optional<MedicalOffice> opMedicalOffice =medicalOfficeRepository.findByCodiceFiscale(codiceFiscale);
     	//Controlla se lo studio medico ricercato esista
     	if(opMedicalOffice.isPresent()) {
     		return new ResponseEntity<>(HttpStatus.BAD_REQUEST);

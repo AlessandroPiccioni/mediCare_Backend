@@ -23,7 +23,9 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/user")
 @Validated
-@CrossOrigin("*")
+//@CrossOrigin("*")
+@CrossOrigin(origins = {})
+//@CrossOrigin(origins = "http://localhost:3000")
 public class UserController {
 	
 	@Autowired
@@ -70,6 +72,9 @@ public class UserController {
     		//return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     	//}
     	System.out.println("Sono entrato qui dentro");
+    	if(user == null) {
+    		System.out.println("è vuoro");
+    	}
     	user.setRuolo(User.Ruolo.Medico);
     	//Gli rimanda l'user controlla cosi che possa continuare nella registrazione del medico
         return new ResponseEntity<>(user, HttpStatus.CONTINUE);
