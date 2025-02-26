@@ -1,19 +1,25 @@
 package com.example.mediCare.controller;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.example.mediCare.auth.TokenService;
 import com.example.mediCare.model.Doctor;
@@ -109,6 +115,67 @@ public class DoctorController {
         }
         doctorSpecializationRepository.saveAll(doctorSpecializations);
     }
+    
+    /**
+     * fa l'uploaddell'immagine per il prodotto
+     * @param id
+     * @param file
+     * @param request
+     * @param response
+     * @return Object
+     */
+    @PostMapping("/image")
+    public Object uploadImage(@PathVariable Long id, @RequestParam("file") MultipartFile file, HttpServletRequest request, HttpServletResponse response) {
+        try {
+        	//Oggetto Optional che rappresenta l'utente che ha fatto la richiesta
+        	Optional<User> authUser = getAuthenticatedUser(request);
+        	//Controlla se ha i permessi
+        	if (!authUser.isPresent() && !authUser.get().getRuolo().name().equals("Medico")) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                return Collections.singletonMap("message", "Autenticazione richiesta");
+            }
+        	Optional<Doctor> OpDoctor = doctorRepository.findByUserId(authUser.get().getId());
+        	if(!OpDoctor.isPresent()) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                return Collections.singletonMap("message", "Richiesta non valida");
+        	}
+        	Doctor doctor = OpDoctor.get();
+        	doctor.setNomeFile(file.getOriginalFilename());
+        	doctor.setData(file.getBytes());
+        	Doctor savedDoctor = doctorRepository.save(doctor);
+            // Restituisce una ResponseEntity con lo stato HTTP 201 (Created) e l'immagine salvata
+            return new ResponseEntity<>(savedDoctor, HttpStatus.CREATED);
+        } catch (IOException e) {
+            // In caso di errore durante la lettura dei dati del file, restituisce lo stato HTTP 500 (Internal Server Error)
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    
+    /**
+	 * elimina l'immagine del prodotto
+	 * @param id
+	 * @return ResponseEntity<byte[]>
+	 */
+    @GetMapping("/image/{id}")
+    public ResponseEntity<byte[]> getImageForProdotto (@PathVariable Long id, HttpServletRequest request, HttpServletResponse response) {
+        try {
+        	//Oggetto Optional che rappresenta l'utente che ha fatto la richiesta
+        	Optional<User> authUser = getAuthenticatedUser(request);
+        	if()
+            Optional<Doctor> OpDoctor = doctorRepository.findById(id);
+            if (!OpDoctor.isPresent() || OpDoctor.get().getNomeFile() == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            }
+            Doctor doctor = OpDoctor.get();
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + doctor.getNomeFile() + "\"")
+                    .body(doctor.getData());
+        } catch (Exception e) {
+            // In caso di errore durante la lettura dei dati del file, restituisce lo stato HTTP 500 (Internal Server Error)
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
     
     /**
      * Metodo di utilità per estrarre il token di autenticazione dall'header "Authorization".

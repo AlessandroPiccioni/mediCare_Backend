@@ -40,6 +40,10 @@ public class Doctor {
 	@JoinColumn (name="medicalOffice_id")
 	private MedicalOffice medicalOffice;
 	
+	private String nomeFile;
+	
+	private byte [] data;
+	
 	//Costruttore di defualt
 	public Doctor () {
 	}
@@ -77,6 +81,24 @@ public class Doctor {
 	public void setMedicalOffice(MedicalOffice medicalOffice) {
 		this.medicalOffice = medicalOffice;
 	}
+
+	public String getNomeFile() {
+		return nomeFile;
+	}
+
+	public void setNomeFile(String nomeFile) {
+		this.nomeFile = nomeFile;
+	}
+
+	public byte[] getData() {
+		return data;
+	}
+
+	public void setData(byte[] data) {
+		this.data = data;
+	}
+	
+	
 	
 	
 	
