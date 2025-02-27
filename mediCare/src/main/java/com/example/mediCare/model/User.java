@@ -12,6 +12,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -34,7 +35,8 @@ public class User {
 	//Relazione onetoone con la tabella Doctor
 	//Un utente puo essere solo un medico
 	//un medico puo essere soltanto un utente
-	@OneToOne(mappedBy = "user")
+	@OneToOne
+	@JoinColumn(name = "user_id")
 	private Doctor doctor;
 	
 	//Il nome dell'utente

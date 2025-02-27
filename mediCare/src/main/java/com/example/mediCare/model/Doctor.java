@@ -43,7 +43,8 @@ public class Doctor {
 	//Crea uan relazione con la tabella specialization
 	//Un dottore puo avere piu specializzazioni
 	//una stessa specializzazione puo essere posseduta da piu dottori
-    @OneToMany(mappedBy = "doctor")
+    @OneToMany
+    @JoinColumn(name = "doctor_id")
 	private List<DoctorSpecialization> doctorSpecialization;
 	
 	//Crea uan relazione con la tabella MedicalOffice

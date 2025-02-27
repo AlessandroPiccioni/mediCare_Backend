@@ -2,9 +2,11 @@ package com.example.mediCare.controller;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -70,96 +72,70 @@ public class DoctorController {
      * @param response		Oggetto HttpServletResponse che contiene informazioni della risposta 
      * @return ritorna la risposta dell'endpint composta da httpstatus e dal nuovo oggetto User
      */ 
-    @PostMapping ("/{codiceFiscale}/{nomeSpecializzazione}")
-    public Object createUtenteDoctor(@RequestBody User user, @PathVariable String codiceFiscale, @PathVariable List<Long> nomeSpecializzazione,HttpServletRequest request, HttpServletResponse response) {
-    	
-    	System.out.println("Sei entrato nel endpoint per creare il nuovo dottore");
-    	
-    	//Controllare se lo studio medico esista
-    	Optional<MedicalOffice> opMedicalOffice= medicalOfficeRepository.findByCodiceFiscale(codiceFiscale);
-    	if(!opMedicalOffice.isPresent()) {
-    		System.out.println("Lo studio medico non è presente nel database");
-    		return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-    	}
-    	
-    	
-    	//Controllare se le specializzazioni esistano
-    	
-    	List<Long> sup = new ArrayList <Long>();
-    	for(int i=0; i<nomeSpecializzazione.size(); i++) {
-    		if(nomeSpecializzazione.get(i)!= null && specializationRepository.findById(nomeSpecializzazione.get(i)).isPresent()) {
-    			System.out.println("Specializzazione controllata: " + nomeSpecializzazione.get(i));
-    			sup.add(nomeSpecializzazione.get(i));
-    		}
-    	}
-    	
-    	if(sup.isEmpty()) {
-    		System.out.println("Nessuna specializzazione usata eiste");
-    		return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-    	}
-    	
-    	//Creare il nuvo user
-    	
-    	user.setRuolo(User.Ruolo.Medico);
-    	userRepository.save(user);
-    	
-    	System.out.println("Creazione User medico: " + user);
-    	
-    	//Controllare se l'user esista
-    	System.out.println("Prima del controllo user");
-    	Optional<User> OpSaveUser = userRepository.findByEmail(user.getEmail());
-    	System.out.println();
-    	System.out.println(OpSaveUser.get().getId());
-    	System.out.println(!OpSaveUser.isPresent());
-    	if (!OpSaveUser.isPresent()) {
-    	    System.out.println("L'utente con questa email non esiste");
-    	    return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-    	}
-    	
-    	System.out.println("DOPO del controllo user");
-    	
-    	//Inserire il medico insieme allo studio medico e lo user
-    	
-    	// Creare il nuovo dottore
-    	Doctor doctor = new Doctor();
+    @PostMapping("/{codiceFiscale}/{nomeSpecializzazione}")
+    public Object createUtenteDoctor(@RequestBody User user, @PathVariable String codiceFiscale, @PathVariable String nomeSpecializzazione, HttpServletRequest request, HttpServletResponse response) {
+        System.out.println("Sei entrato nel endpoint per creare il nuovo dottore");
 
-    	// Aggiungiamo l'user al dottore
-    	System.out.println("Aggiungiamo l'user al dottore");
-    	doctor.setUser(OpSaveUser.get());
+        // Controllare se lo studio medico esista
+        Optional<MedicalOffice> opMedicalOffice = medicalOfficeRepository.findByCodiceFiscale(codiceFiscale);
+        if (!opMedicalOffice.isPresent()) {
+            System.out.println("Lo studio medico non è presente nel database");
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
 
-    	// Aggiungiamo lo studio medico al dottore
-    	System.out.println("Aggiungiamo lo studio medico al dottore");
-    	doctor.setMedicalOffice(opMedicalOffice.get());
+        // Creare il nuovo user
+        user.setRuolo(User.Ruolo.Medico);
+        userRepository.save(user);
+        System.out.println("Creazione User medico: " + user);
 
-    	// Salviamo il dottore nel database prima di fare la ricerca
-    	doctorRepository.save(doctor); // Salvataggio nel database
+        // Controllare se l'user esista
+        Optional<User> OpSaveUser = userRepository.findByEmail(user.getEmail());
+        if (!OpSaveUser.isPresent()) {
+            System.out.println("L'utente con questa email non esiste");
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
 
-    	// Verifica che il dottore è stato correttamente salvato
-    	System.out.println("Verifichiamo se il dottore è stato salvato nel database");
-    	Optional<Doctor> opSaveDoctor = doctorRepository.findByUserId(OpSaveUser.get().getId());
+        // Creare il nuovo dottore
+        Doctor doctor = new Doctor();
+        doctor.setUser(OpSaveUser.get());
+        doctor.setMedicalOffice(opMedicalOffice.get());
 
-    	if (!opSaveDoctor.isPresent()) {
-    	    System.out.println("Il dottore non è stato salvato correttamente");
-    	    return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-    	}
+        // Salviamo il dottore nel database
+        doctorRepository.save(doctor);
 
-    	System.out.println("Il dottore è stato salvato correttamente");
-    	
-    	//inserire le relazioni tra il singolo dottore e le specializzazioni
-    	
-    	Doctor saveDoctor= opSaveDoctor.get();
-    	List<DoctorSpecialization> doctorSpecializations = new ArrayList<>();
-    	for(int i=0; i<sup.size(); i++) {
-    		Optional <Specialization> Opspecialization = specializationRepository.findById(sup.get(i));
-    		doctorSpecializations.add(new DoctorSpecialization(saveDoctor, Opspecialization.get()));
-    	}
-    	
-    	System.out.println("Le specializzazioni stannto per essere associate");
-    	doctorSpecializationRepository.saveAll(doctorSpecializations);
-    	
-    	return new ResponseEntity<>(saveDoctor, HttpStatus.CREATED);
-   
+        // Verifica che il dottore è stato correttamente salvato
+        Optional<Doctor> opSaveDoctor = doctorRepository.findByUserId(OpSaveUser.get().getId());
+        if (!opSaveDoctor.isPresent()) {
+            System.out.println("Il dottore non è stato salvato correttamente");
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+        System.out.println("Il dottore è stato salvato correttamente");
+
+        // Splittiamo la stringa delle specializzazioni per ottenere il nome di ciascuna specializzazione
+        List<String> specializationNames = Arrays.asList(nomeSpecializzazione.split(","));
+
+        // Aggiungiamo le specializzazioni
+        List<DoctorSpecialization> doctorSpecializations = new ArrayList<>();
+
+        for (String specializationName : specializationNames) {
+            Optional<Specialization> optionalSpecialization = specializationRepository.findByField(specializationName.trim());
+
+            if (optionalSpecialization.isPresent()) {
+                Specialization specialization = optionalSpecialization.get();
+                doctorSpecializations.add(new DoctorSpecialization(opSaveDoctor.get(), specialization));
+            } else {
+                System.out.println("Specializzazione non trovata: " + specializationName);
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST); // Ritorna un errore se una specializzazione non è trovata
+            }
+        }
+
+        // Salviamo le specializzazioni associate al dottore
+        doctorSpecializationRepository.saveAll(doctorSpecializations);
+
+        return new ResponseEntity<>(opSaveDoctor.get(), HttpStatus.CREATED);
     }
+
     
     /**
      * fa l'uploaddell'immagine per il prodotto
@@ -213,7 +189,7 @@ public class DoctorController {
     }
     
 
-    @GetMapping("/image/{id}")
+    @GetMapping("/image")
     public Object getImageForProdotto (HttpServletRequest request, HttpServletResponse response) {
         try {
         	//Oggetto Optional che rappresenta l'utente che ha fatto la richiesta
@@ -265,7 +241,7 @@ public class DoctorController {
      * @param response
      * @return Object
      */
-    @DeleteMapping("/image/{id}")
+    @DeleteMapping("/image")
     public Object deleteImage(HttpServletRequest request, HttpServletResponse response) {
     	Optional<User> authUser = getAuthenticatedUser(request);
     	//Controlla se ha i permessi

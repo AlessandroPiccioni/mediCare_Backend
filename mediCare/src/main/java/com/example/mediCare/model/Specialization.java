@@ -3,6 +3,7 @@ package com.example.mediCare.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.Entity;
@@ -40,7 +41,9 @@ public class Specialization {
 	//Crea uan relazione con la tabella Doctor
 	//Un dottore puo avere piu specializzazioni
 	//una stessa specializzazione puo essere posseduta da piu dottori
-    @OneToMany(mappedBy = "specialization")
+    @OneToMany
+    @JoinColumn (name="specialization_id")
+    @JsonIgnore
 	private List<DoctorSpecialization> doctorSpecialization;
 	
 	//Il campo di studio
