@@ -75,11 +75,7 @@ public class UserController {
 
     	//user.setRuolo(User.Ruolo.Medico);
 
-    	if(user == null) {
-    		System.out.println("è vuoro");
-    	}
     	user.setRuolo(User.Ruolo.Medico);
-    	System.out.println("prima del return");
 
     	//Gli rimanda l'user controlla cosi che possa continuare nella registrazione del medico
         //return new ResponseEntity<>(user, HttpStatus.CONTINUE);

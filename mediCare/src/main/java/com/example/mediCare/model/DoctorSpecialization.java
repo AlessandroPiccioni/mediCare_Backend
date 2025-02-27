@@ -2,6 +2,8 @@ package com.example.mediCare.model;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -19,8 +21,8 @@ public class DoctorSpecialization {
 	
 	//Relazione M-M tra doctor e specialization
 	
-	@ManyToOne
-	@JoinColumn (name="doctor_id")
+    @ManyToOne
+    @JoinColumn(name = "doctor_id")
 	private Doctor doctor;
 	
 	@ManyToOne

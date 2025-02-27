@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -69,51 +70,95 @@ public class DoctorController {
      * @param response		Oggetto HttpServletResponse che contiene informazioni della risposta 
      * @return ritorna la risposta dell'endpint composta da httpstatus e dal nuovo oggetto User
      */ 
-    @PostMapping 
-    public Object createUtenteUser(@RequestBody User user, @PathVariable String codiceFiscale, @PathVariable List<String> nomeSpecializzazione,HttpServletRequest request, HttpServletResponse response) {
-    	//Cerca se l'utente eiste
-    	if(userRepository.findByEmailAndPasswordAndCodiceFiscale(user.getEmail(), user.getPassword(), user.getCodiceFiscale()).isPresent()) {
+    @PostMapping ("/{codiceFiscale}/{nomeSpecializzazione}")
+    public Object createUtenteDoctor(@RequestBody User user, @PathVariable String codiceFiscale, @PathVariable List<Long> nomeSpecializzazione,HttpServletRequest request, HttpServletResponse response) {
+    	
+    	System.out.println("Sei entrato nel endpoint per creare il nuovo dottore");
+    	
+    	//Controllare se lo studio medico esista
+    	Optional<MedicalOffice> opMedicalOffice= medicalOfficeRepository.findByCodiceFiscale(codiceFiscale);
+    	if(!opMedicalOffice.isPresent()) {
+    		System.out.println("Lo studio medico non è presente nel database");
     		return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     	}
-    	Optional<MedicalOffice> opMedicalOffice =medicalOfficeRepository.findByCodiceFiscale(codiceFiscale);
-    	//Controlla se lo studio medico ricercato esista
-    	if(opMedicalOffice.isPresent()) {
-    		return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-    	}
-    	//Lista di specializzazione controllata
-    	List<Specialization> sup = new ArrayList <Specialization>();
+    	
+    	
+    	//Controllare se le specializzazioni esistano
+    	
+    	List<Long> sup = new ArrayList <Long>();
     	for(int i=0; i<nomeSpecializzazione.size(); i++) {
-    		for(String b: Specialization.fields) {
-    			//Confronta per vedere se la specializzazione esiste
-    			if(nomeSpecializzazione.get(i).equals(b)) {
-    				sup.add(specializationRepository.findByField(nomeSpecializzazione.get(i)).get());
-    			}
+    		if(nomeSpecializzazione.get(i)!= null && specializationRepository.findById(nomeSpecializzazione.get(i)).isPresent()) {
+    			System.out.println("Specializzazione controllata: " + nomeSpecializzazione.get(i));
+    			sup.add(nomeSpecializzazione.get(i));
     		}
     	}
-    	//Se la specializzazione è vuota
+    	
     	if(sup.isEmpty()) {
+    		System.out.println("Nessuna specializzazione usata eiste");
     		return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     	}
-    	//Inizializza il nuovo dottore
+    	
+    	//Creare il nuvo user
+    	
+    	user.setRuolo(User.Ruolo.Medico);
+    	userRepository.save(user);
+    	
+    	System.out.println("Creazione User medico: " + user);
+    	
+    	//Controllare se l'user esista
+    	System.out.println("Prima del controllo user");
+    	Optional<User> OpSaveUser = userRepository.findByEmail(user.getEmail());
+    	System.out.println();
+    	System.out.println(OpSaveUser.get().getId());
+    	System.out.println(!OpSaveUser.isPresent());
+    	if (!OpSaveUser.isPresent()) {
+    	    System.out.println("L'utente con questa email non esiste");
+    	    return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    	}
+    	
+    	System.out.println("DOPO del controllo user");
+    	
+    	//Inserire il medico insieme allo studio medico e lo user
+    	
+    	// Creare il nuovo dottore
     	Doctor doctor = new Doctor();
-    	//riempimento
-    	doctor.setUser(user);
+
+    	// Aggiungiamo l'user al dottore
+    	System.out.println("Aggiungiamo l'user al dottore");
+    	doctor.setUser(OpSaveUser.get());
+
+    	// Aggiungiamo lo studio medico al dottore
+    	System.out.println("Aggiungiamo lo studio medico al dottore");
     	doctor.setMedicalOffice(opMedicalOffice.get());
-    	//salva l'utente
-    	doctorRepository.save(doctor);
-    	//Salva le relazione tra il dottore e le specializzazione
-    	moreDoctorSpecialization(doctor,sup);
-        return new ResponseEntity<>(doctor, HttpStatus.CREATED);
-    }
-    
-	//Crea una relazione con lo stesso id medico con tutte gli id specializzazione di una lista
-	//Metodo per creare piu di una volta la relazione tra un solo medico con piu specializzazioni
-    public void moreDoctorSpecialization(Doctor doctor, List<Specialization> specialization) {
-        List<DoctorSpecialization> doctorSpecializations = new ArrayList<>();
-        for (Specialization spec : specialization) {
-            doctorSpecializations.add(new DoctorSpecialization(doctor, spec));
-        }
-        doctorSpecializationRepository.saveAll(doctorSpecializations);
+
+    	// Salviamo il dottore nel database prima di fare la ricerca
+    	doctorRepository.save(doctor); // Salvataggio nel database
+
+    	// Verifica che il dottore è stato correttamente salvato
+    	System.out.println("Verifichiamo se il dottore è stato salvato nel database");
+    	Optional<Doctor> opSaveDoctor = doctorRepository.findByUserId(OpSaveUser.get().getId());
+
+    	if (!opSaveDoctor.isPresent()) {
+    	    System.out.println("Il dottore non è stato salvato correttamente");
+    	    return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    	}
+
+    	System.out.println("Il dottore è stato salvato correttamente");
+    	
+    	//inserire le relazioni tra il singolo dottore e le specializzazioni
+    	
+    	Doctor saveDoctor= opSaveDoctor.get();
+    	List<DoctorSpecialization> doctorSpecializations = new ArrayList<>();
+    	for(int i=0; i<sup.size(); i++) {
+    		Optional <Specialization> Opspecialization = specializationRepository.findById(sup.get(i));
+    		doctorSpecializations.add(new DoctorSpecialization(saveDoctor, Opspecialization.get()));
+    	}
+    	
+    	System.out.println("Le specializzazioni stannto per essere associate");
+    	doctorSpecializationRepository.saveAll(doctorSpecializations);
+    	
+    	return new ResponseEntity<>(saveDoctor, HttpStatus.CREATED);
+   
     }
     
     /**
@@ -125,8 +170,24 @@ public class DoctorController {
      * @return Object
      */
     @PostMapping("/image")
-    public Object uploadImage(@PathVariable Long id, @RequestParam("file") MultipartFile file, HttpServletRequest request, HttpServletResponse response) {
+    public Object uploadImage(@RequestParam("file") MultipartFile file, HttpServletRequest request, HttpServletResponse response) {
         try {
+        	
+        	//Controllo del file
+        	if(file.isEmpty()) {
+        		response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                return Collections.singletonMap("message", "Nessun file caricato");
+        	}
+            if (file.getSize() > Doctor.Max_file_size) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                return Collections.singletonMap("message", "Il file è troppo grande. La dimensione massima consentita è " + Doctor.Max_file_size + " byte.");
+            }
+            //Controlla i mime
+            if (!Doctor.Content_Types.contains(file.getContentType())) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                return Collections.singletonMap("message", "Tipo di file non supportato. I tipi supportati sono: " + String.join(", ", Doctor.Content_Types));
+            }
+             	
         	//Oggetto Optional che rappresenta l'utente che ha fatto la richiesta
         	Optional<User> authUser = getAuthenticatedUser(request);
         	//Controlla se ha i permessi
@@ -151,20 +212,20 @@ public class DoctorController {
         }
     }
     
-    /**
-	 * elimina l'immagine del prodotto
-	 * @param id
-	 * @return ResponseEntity<byte[]>
-	 */
+
     @GetMapping("/image/{id}")
-    public ResponseEntity<byte[]> getImageForProdotto (@PathVariable Long id, HttpServletRequest request, HttpServletResponse response) {
+    public Object getImageForProdotto (HttpServletRequest request, HttpServletResponse response) {
         try {
         	//Oggetto Optional che rappresenta l'utente che ha fatto la richiesta
         	Optional<User> authUser = getAuthenticatedUser(request);
-        	if()
-            Optional<Doctor> OpDoctor = doctorRepository.findById(id);
+           	//Controlla se ha i permessi
+        	if (!authUser.isPresent() && !authUser.get().getRuolo().name().equals("Medico")) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                return Collections.singletonMap("message", "Autenticazione richiesta");
+            }
+            Optional<Doctor> OpDoctor = doctorRepository.findByUserId(authUser.get().getId());
             if (!OpDoctor.isPresent() || OpDoctor.get().getNomeFile() == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            	return new ResponseEntity<>(HttpStatus.NO_CONTENT);
             }
             Doctor doctor = OpDoctor.get();
             return ResponseEntity.ok()
@@ -175,6 +236,58 @@ public class DoctorController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
+    
+	/**
+	 * ottiene tutte le immagini
+	 * @return List<ResponseEntity<byte[]>>
+	 */
+	@GetMapping("/image/all")
+	public List<ResponseEntity<byte[]>> getAllImages() {
+	    List<ResponseEntity<byte[]>> responses = new ArrayList<>();
+	    for (Doctor doctor : doctorRepository.findAll()) {
+	        if (doctor.getNomeFile() != null) {
+	            ResponseEntity<byte[]> response = ResponseEntity.ok()
+	            	.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + doctor.getNomeFile() + "\"")
+	                .body(doctor.getData());
+	            responses.add(response);  
+	        } else {
+	            ResponseEntity<byte[]> response = ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+	            responses.add(response);  
+	        }
+	    }
+	    return responses;
+	}
+	
+    /**
+     * elimina un immagine dato un id
+     * @param id
+     * @param request
+     * @param response
+     * @return Object
+     */
+    @DeleteMapping("/image/{id}")
+    public Object deleteImage(HttpServletRequest request, HttpServletResponse response) {
+    	Optional<User> authUser = getAuthenticatedUser(request);
+    	//Controlla se ha i permessi
+    	if (!authUser.isPresent() && !authUser.get().getRuolo().equals("admin")) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return Collections.singletonMap("message", "Autenticazione richiesta");
+        }
+    	Optional<Doctor> OpDoctor = doctorRepository.findByUserId(authUser.get().getId());
+        if(!OpDoctor.isPresent()) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            return Collections.singletonMap("message", "Richiesta non valida");
+        }
+        Doctor doctor = OpDoctor.get();
+        doctor.setNomeFile(null);
+        doctor.setData(null);
+        Doctor deleteDoctor = doctorRepository.save(doctor);
+        
+        //Ritorna la risposta dell'endpoint
+        return new ResponseEntity<>(deleteDoctor, HttpStatus.OK);
+        
+    }
+	
 
     
     /**
