@@ -2,6 +2,8 @@ package com.example.mediCare.model;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -24,8 +26,7 @@ public class MedicalOffice {
 	//Crea uan relazione con la tabella MedicalOffice
 	//Un dottore puo essere parte di un solo studio medico
 	//Uno studio medico puo avere piu dottori
-	@OneToMany
-	@JoinColumn (name="medicalOffice_id")
+    @OneToMany(mappedBy = "medicalOffice")
 	private List <Doctor> doctor;
 	
 	@NotBlank(message = "Nome utente è obbligatorio")

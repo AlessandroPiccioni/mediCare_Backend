@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,13 +27,13 @@ public class MedicalOfficeController {
 	private MedicalOfficeRepository medicalOfficeRepository;
 	
 	@GetMapping("/all")
-	public List<MedicalOffice> getAllMedicalOffice () {
-	    return medicalOfficeRepository.findAll();
+	public ResponseEntity<List<MedicalOffice>> getAllMedicalOffice () {
+		List<MedicalOffice> medicalOffices=medicalOfficeRepository.findAll();
+	    return ResponseEntity.ok(medicalOffices);
 	}
 	
 	@GetMapping("/{nome}")
 	public Optional<MedicalOffice> getMedicalOfficeByNome (@PathVariable String nome){
-		System.out.println("aaaaaaaaaaaaaa");
 		return medicalOfficeRepository.findByNome(nome);
 	}
 	

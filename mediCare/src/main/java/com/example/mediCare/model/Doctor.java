@@ -1,6 +1,10 @@
 package com.example.mediCare.model;
 
+import java.util.Arrays;
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -13,6 +17,16 @@ import jakarta.persistence.OneToOne;
 
 @Entity
 public class Doctor {
+	
+	public static final long Max_file_size= 100000;
+	public static List<String> Content_Types = Arrays.asList(
+    "image/svg+xml", 
+    "image/png", 
+    "image/jpeg", 
+    "image/jpe", 
+    "image/jpg", 
+    "application/pdf"
+	);
 	
 	//Chaive Primaria
 	@Id
@@ -29,16 +43,19 @@ public class Doctor {
 	//Crea uan relazione con la tabella specialization
 	//Un dottore puo avere piu specializzazioni
 	//una stessa specializzazione puo essere posseduta da piu dottori
-	@OneToMany
-	@JoinColumn (name="doctor_id")
+    @OneToMany(mappedBy = "doctor")
 	private List<DoctorSpecialization> doctorSpecialization;
 	
 	//Crea uan relazione con la tabella MedicalOffice
 	//Un dottore puo essere parte di un solo studio medico
 	//Uno studio medico puo avere piu dottori
 	@ManyToOne
-	@JoinColumn (name="medicalOffice_id")
+	@JoinColumn(name = "medical_office_id")
 	private MedicalOffice medicalOffice;
+	
+	private String nomeFile;
+	
+	private byte [] data;
 	
 	//Costruttore di defualt
 	public Doctor () {
@@ -77,6 +94,24 @@ public class Doctor {
 	public void setMedicalOffice(MedicalOffice medicalOffice) {
 		this.medicalOffice = medicalOffice;
 	}
+
+	public String getNomeFile() {
+		return nomeFile;
+	}
+
+	public void setNomeFile(String nomeFile) {
+		this.nomeFile = nomeFile;
+	}
+
+	public byte[] getData() {
+		return data;
+	}
+
+	public void setData(byte[] data) {
+		this.data = data;
+	}
+	
+	
 	
 	
 	
