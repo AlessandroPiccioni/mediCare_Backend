@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -213,6 +215,52 @@ public class DoctorController {
         }
     }
     
+    @GetMapping("/top/{id1}/{id2}/{id3}")
+    public ResponseEntity<?> getTopDoctor(@PathVariable Long id1, @PathVariable Long id2, @PathVariable Long id3, HttpServletRequest request, HttpServletResponse response) {
+        try {
+            List<Doctor> doctors = new ArrayList<>();
+            Long[] top = {id1, id2, id3};
+
+            //Recupera i medici in base agli ID
+            for (int i = 0; i < 3; i++) {
+            	System.out.println();
+            	System.out.println(i);
+            	System.out.println(doctorRepository.findByUserId(top[i]).get().getNomeFile());
+            	System.out.println(doctorRepository.findByUserId(top[i]).isPresent() && doctorRepository.findByUserId(top[i]).get().getNomeFile() != null);
+            	System.out.println("aaaaaaaaaaaaaaaa");
+            	System.out.println();
+                Optional<Doctor> opDoctor = doctorRepository.findByUserId(top[i]);
+                System.out.println();
+                if (opDoctor.isPresent() && opDoctor.get().getNomeFile() != null) {
+                    doctors.add(opDoctor.get());
+                }
+            }
+
+            //Se nessun medico valido è stato trovato
+            if (doctors.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body("Nessun medico trovato o file mancante.");
+            }
+
+            //Raggruppa tutte le risposte
+            List<Map<String, Object>> responseList = new ArrayList<>();
+            for (Doctor doctor : doctors) {
+                Map<String, Object> doctorInfo = new HashMap<>();
+                doctorInfo.put("fileName", doctor.getNomeFile());
+                doctorInfo.put("doctorName", String.format("%s %s", doctor.getUser().getNome(), doctor.getUser().getCognome()));
+                doctorInfo.put("fileData", doctor.getData());
+
+                responseList.add(doctorInfo);
+            }
+
+            return ResponseEntity.ok(responseList);
+
+        } catch (Exception e) {
+            //In caso di errore
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Si è verificato un errore durante il recupero dei dati.");
+        }
+    }
+
 	/**
 	 * ottiene tutte le immagini
 	 * @return List<ResponseEntity<byte[]>>

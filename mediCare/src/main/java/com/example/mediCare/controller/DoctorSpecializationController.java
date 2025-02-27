@@ -52,8 +52,10 @@ public class DoctorSpecializationController {
 	    
 	    System.out.println("Ho presso tutte le specializzazioni e i dottori");
 	    
+	    search = search.trim();
+	    
 	    //Controlla se la ricerca ci sia
-	    if (search == null || search.trim().isEmpty()) {
+	    if (search == null || search.isEmpty()) {
 	        return ResponseEntity.ok(doctors); 
 	    }
 
@@ -66,37 +68,12 @@ public class DoctorSpecializationController {
 	    
 	    //Cerca se i dottori corrispondo con il campo di ricerca
 	    for (Doctor doctor : doctors) {
-	        String fullName = String.format("%s %s", doctor.getUser().getNome(), doctor.getUser().getCognome());
+	        String fullName = String.format("%s %s",doctor.getUser().getCognome(), doctor.getUser().getNome());        
 	        
-	        
-	        
-	        
-	        //Se confronto con search2 mi va bene. Invece con search non mi va 
-	        String search2 = "P";
-	        System.out.println(fullName);
-	        System.out.println(search);
-	        System.out.println(fullName.startsWith(search));
-	        
-	        
-	        
-	        
-	        if (fullName.toLowerCase().startsWith(search.toLowerCase())) {
+	        if (fullName.toLowerCase().contains(search.toLowerCase())) {
 	            resultUser.add(doctor.getUser());
 	        }
 	    }
-	    
-	    
-	    
-	    
-	    
-	    System.out.println("Controllo se i dottori sono presenti nel database");
-	    System.out.println();
-	    System.out.println(resultUser.get(0));
-	    System.out.println(!resultUser.isEmpty());
-	    System.out.println();
-
-	    
-	    
 	    
 	    //Se la lista non è vuota ritorna i dottori 
 	    if (!resultUser.isEmpty()) {
@@ -107,7 +84,7 @@ public class DoctorSpecializationController {
 
 	  //Cerca le specializzazioni che corrispondono con il campo di ricerca
 	    for (Specialization specialization : specializations) {
-	        if (specialization.getField().startsWith(search)) { 
+	        if (specialization.getField().contains(search)) { 
 	            resultSpecializations.add(specialization);
 	        }
 	    }
