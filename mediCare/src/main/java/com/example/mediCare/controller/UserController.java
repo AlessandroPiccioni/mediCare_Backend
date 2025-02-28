@@ -1,12 +1,14 @@
 package com.example.mediCare.controller;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -70,6 +73,54 @@ public class UserController {
     	User savedUtente = userRepository.save(user);
         return new ResponseEntity<>(savedUtente, HttpStatus.CREATED);
     }
+    
+    @PutMapping("/password/{password}")
+    public Object putPassword(@PathVariable String password, HttpServletRequest request, HttpServletResponse response) {
+        try {
+        	//Oggetto Optional che rappresenta l'utente che ha fatto la richiesta
+        	Optional<User> authUser = getAuthenticatedUser(request);
+           	//Controlla se ha i permessi
+        	if (!authUser.isPresent()) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                return Collections.singletonMap("message", "Autenticazione richiesta");
+            }
+           User user = authUser.get();
+           user.setPassword(password);
+           userRepository.save(user);
+            return ResponseEntity.ok()
+                    .body(user);
+        } catch (Exception e) {
+            // In caso di errore durante la lettura dei dati del file, restituisce lo stato HTTP 500 (Internal Server Error)
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+    
+    @PutMapping("/{id}")
+    public Object updateUser(@RequestBody User updatedUser, HttpServletRequest request, HttpServletResponse response) {
+    	//Oggetto Optional che rappresenta l'utente che ha fatto la richiesta
+    	Optional<User> authUser = getAuthenticatedUser(request);
+       	//Controlla se ha i permessi
+    	if (!authUser.isPresent()) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return Collections.singletonMap("message", "Autenticazione richiesta");
+        }
+    	
+    	User user = authUser.get();
+
+        // Aggiorna i campi dell'utente esistente con i valori forniti
+        user.setNome(updatedUser.getNome());
+        user.setCognome(updatedUser.getCognome());
+        user.setCodiceFiscale(updatedUser.getCodiceFiscale());
+        user.setEmail(updatedUser.getEmail());
+        user.setPassword(updatedUser.getPassword());
+        user.setDataNascita(updatedUser.getDataNascita());
+
+        // Salva l'utente aggiornato nel repository
+        userRepository.save(user);
+
+        return ResponseEntity.ok(user);
+    }
+
     
     /**
      * Endpoint per la verifica dell'utente e per continuare la registrazione del medico

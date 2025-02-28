@@ -3,6 +3,7 @@ package com.example.mediCare.controller;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -138,7 +140,6 @@ public class DoctorController {
         return new ResponseEntity<>(opSaveDoctor.get(), HttpStatus.CREATED);
     }
 
-    
     /**
      * fa l'uploaddell'immagine per il prodotto
      * @param id
@@ -221,34 +222,31 @@ public class DoctorController {
             List<Doctor> doctors = new ArrayList<>();
             Long[] top = {id1, id2, id3};
 
-            //Recupera i medici in base agli ID
+            // Recupera i medici in base agli ID
             for (int i = 0; i < 3; i++) {
-            	System.out.println();
-            	System.out.println(i);
-            	System.out.println(doctorRepository.findByUserId(top[i]).get().getNomeFile());
-            	System.out.println(doctorRepository.findByUserId(top[i]).isPresent() && doctorRepository.findByUserId(top[i]).get().getNomeFile() != null);
-            	System.out.println("aaaaaaaaaaaaaaaa");
-            	System.out.println();
                 Optional<Doctor> opDoctor = doctorRepository.findByUserId(top[i]);
-                System.out.println();
+
                 if (opDoctor.isPresent() && opDoctor.get().getNomeFile() != null) {
                     doctors.add(opDoctor.get());
                 }
             }
 
-            //Se nessun medico valido è stato trovato
+            // Se nessun medico valido è stato trovato
             if (doctors.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body("Nessun medico trovato o file mancante.");
             }
 
-            //Raggruppa tutte le risposte
+            // Raggruppa tutte le risposte
             List<Map<String, Object>> responseList = new ArrayList<>();
             for (Doctor doctor : doctors) {
                 Map<String, Object> doctorInfo = new HashMap<>();
                 doctorInfo.put("fileName", doctor.getNomeFile());
                 doctorInfo.put("doctorName", String.format("%s %s", doctor.getUser().getNome(), doctor.getUser().getCognome()));
-                doctorInfo.put("fileData", doctor.getData());
+
+                // Converti i dati del file in Base64 per la serializzazione
+                String base64FileData = Base64.getEncoder().encodeToString(doctor.getData());
+                doctorInfo.put("fileData", base64FileData);
 
                 responseList.add(doctorInfo);
             }
@@ -256,8 +254,9 @@ public class DoctorController {
             return ResponseEntity.ok(responseList);
 
         } catch (Exception e) {
-            //In caso di errore
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Si è verificato un errore durante il recupero dei dati.");
+            e.printStackTrace();  // Log dell'errore
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Si è verificato un errore durante il recupero dei dati.");
         }
     }
 

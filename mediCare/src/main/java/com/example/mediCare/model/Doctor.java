@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.Entity;
@@ -39,6 +40,7 @@ public class Doctor {
 	//un medico puo essere soltanto un utente
 	@OneToOne
 	@JoinColumn(name = "user_id")
+	@JsonIgnore
 	private User user;
 	
 	//Crea uan relazione con la tabella specialization
@@ -46,6 +48,7 @@ public class Doctor {
 	//una stessa specializzazione puo essere posseduta da piu dottori
     @OneToMany
     @JoinColumn(name = "doctor_id")
+    @JsonIgnore
 	private List<DoctorSpecialization> doctorSpecialization;
 	
 	//Crea uan relazione con la tabella MedicalOffice

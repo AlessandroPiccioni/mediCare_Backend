@@ -1,6 +1,7 @@
 package com.example.mediCare.controller;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -11,6 +12,8 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -40,6 +43,9 @@ public class DoctorSpecializationController {
 	
 	@Autowired
 	private SpecializationRepository specializationRepository;
+	
+	@Autowired
+	private DoctorSpecializationRepository doctorspecializationRepository;
 	
 	@GetMapping("/search/{search}")
 	public ResponseEntity<Object> getAllSpecialization(@PathVariable("search") String search, HttpServletRequest request, HttpServletResponse response) {
@@ -101,6 +107,10 @@ public class DoctorSpecializationController {
 	    //Non ha trovato niente 
 	    return ResponseEntity.noContent().build();
 	}
+	
+
+
+	
 
 	
 
